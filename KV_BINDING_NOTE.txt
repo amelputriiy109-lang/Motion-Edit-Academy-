@@ -1,0 +1,5 @@
+KV BINDING WAJIB UNTUK LEADERBOARD ONLINE
+Variable name: LEADERBOARD
+KV namespace: MEA_LEADERBOARD
+The ZIP cannot carry Cloudflare account bindings; the binding must exist on the deployed Worker.
+Health check: /api/health

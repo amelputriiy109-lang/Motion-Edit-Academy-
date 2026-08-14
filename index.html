@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#8b5cf6">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Motion Edit Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0e;
+    --surface:#131318;
+    --surface-2:#1b1b22;
+    --border:#26262f;
+    --text:#f2f2f6;
+    --muted:#8b8b98;
+    --accent:#8b5cf6;
+    --accent-2:#ec4899;
+    --accent-soft:rgba(139,92,246,.14);
+    --radius:14px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  html[data-theme="light"]{
+    --bg:#f7f6f9;
+    --surface:#ffffff;
+    --surface-2:#f0eef5;
+    --border:#e3e1ea;
+    --text:#17161d;
+    --muted:#75727f;
+    --accent-soft:rgba(139,92,246,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--text);
+    height:100dvh;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease,color .25s ease;
+  }
+  button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .app{display:flex;flex-direction:column;height:100dvh;min-height:0;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    position:relative;
+    z-index:5;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:11px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .brand-mark svg{width:19px;height:19px;fill:#fff;}
+  .brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
+  .brand-text h1{
+    font-family:var(--font-display);
+    font-size:16.5px;font-weight:600;letter-spacing:-.01em;line-height:1.1;
+  }
+  .brand-text .studio{
+    font-family:var(--font-mono);
+    font-size:10px;letter-spacing:.16em;color:var(--accent);
+    margin-top:3px;font-weight:500;
+  }
+  .header-right{display:flex;align-items:center;gap:10px;}
+  select#modelSelect{
+    background:var(--surface-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:8px 12px;
+    font-size:13px;
+    font-family:var(--font-mono);
+    appearance:none;
+    cursor:pointer;
+  }
+  .icon-btn{
+    width:36px;height:36px;border-radius:9px;
+    background:var(--surface-2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);transition:.15s;
+  }
+  .icon-btn:hover{color:var(--text);border-color:var(--accent);}
+  .icon-btn svg{width:17px;height:17px;}
+
+  /* timeline scrubber signature */
+  .scrubber{height:3px;width:100%;position:relative;overflow:hidden;background:var(--border);}
+  .scrubber::after{
+    content:"";position:absolute;top:0;left:0;height:100%;width:40%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    animation:scrub 3.2s ease-in-out infinite;
+  }
+  @keyframes scrub{
+    0%{left:-40%;}
+    50%{left:60%;}
+    100%{left:-40%;}
+  }
+
+  /* ---------- Main ---------- */
+  main{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
+  .empty-state{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px 20px;gap:18px;
+  }
+  .avatar-ring{
+    width:76px;height:76px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    box-shadow:0 0 0 6px var(--accent-soft);
+    overflow:hidden;
+  }
+  .avatar-ring svg{width:32px;height:32px;fill:#fff;margin-left:3px;}
+  .avatar-ring img{width:100%;height:100%;object-fit:cover;display:block;}
+  .empty-state h2{
+    font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-.02em;
+    max-width:360px;
+  }
+  .empty-state p{color:var(--muted);font-size:14px;max-width:340px;line-height:1.55;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:420px;margin-top:6px;}
+  .chip{
+    border:1px solid var(--border);background:var(--surface);
+    padding:8px 14px;border-radius:20px;font-size:12.5px;color:var(--muted);
+    transition:.15s;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--text);}
+
+  .messages{flex:1;padding:20px;display:flex;flex-direction:column;gap:16px;max-width:760px;width:100%;margin:0 auto;}
+  .msg{display:flex;gap:11px;max-width:88%;animation:rise .25s ease;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+  .msg .bubble-avatar{
+    width:30px;height:30px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;
+  }
+  .msg.assistant .bubble-avatar{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;overflow:hidden;}
+  .msg.assistant .bubble-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .msg.user .bubble-avatar{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
+  .bubble{
+    background:var(--surface);border:1px solid var(--border);
+    padding:11px 14px;border-radius:14px;font-size:14.5px;line-height:1.6;
+    white-space:pre-wrap;word-wrap:break-word;
+  }
+  .msg.user .bubble{background:var(--accent-soft);border-color:transparent;}
+  .msg.assistant .bubble.loading{display:flex;gap:4px;align-items:center;padding:14px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite;}
+  .dot:nth-child(2){animation-delay:.2s;}
+  .dot:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  .footer-note{text-align:center;font-size:11px;color:var(--muted);padding:6px 0 2px;font-family:var(--font-mono);}
+
+  /* ---------- Composer ---------- */
+  .composer-wrap{flex-shrink:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--surface);}
+  .composer{
+    max-width:760px;width:100%;margin:0 auto;
+    display:flex;align-items:flex-end;gap:10px;
+    background:var(--surface-2);border:1px solid var(--border);
+    border-radius:16px;padding:8px 8px 8px 16px;
+  }
+  .composer textarea{
+    flex:1;background:none;border:none;color:var(--text);
+    font-family:var(--font-body);font-size:14.5px;line-height:1.5;
+    resize:none;max-height:140px;padding:8px 0;
+  }
+  .composer textarea:focus{outline:none;}
+  .send-btn{
+    width:38px;height:38px;border-radius:11px;border:none;flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s;
+  }
+  .send-btn:hover{filter:brightness(1.08);}
+  .send-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .send-btn svg{width:16px;height:16px;fill:#fff;}
+
+  /* ---------- Settings Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:18px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;
+    animation:pop .18s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.97);}to{opacity:1;transform:scale(1);}}
+  .modal-head{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:20px 20px 14px;border-bottom:1px solid var(--border);
+  }
+  .modal-head h3{font-family:var(--font-display);font-size:17px;font-weight:600;}
+  .modal-head p{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--font-mono);}
+  .close-btn{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--muted);display:flex;align-items:center;justify-content:center;
+  }
+  .close-btn:hover{color:var(--text);}
+  .modal-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:18px;}
+  .field label{
+    display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--text);
+  }
+  .field .hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .field input[type="text"],.field input[type="password"],.field textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;color:var(--text);font-size:13.5px;
+    font-family:var(--font-mono);
+  }
+  .field textarea{font-family:var(--font-body);resize:vertical;min-height:70px;}
+  .toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface-2);border:1px solid var(--border);
+    border-radius:12px;padding:12px 14px;
+  }
+  .toggle-row .label-main{font-size:13.5px;font-weight:600;}
+  .toggle-row .label-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .switch{
+    width:42px;height:24px;border-radius:20px;background:var(--border);
+    position:relative;flex-shrink:0;transition:.2s;border:none;
+  }
+  .switch::after{
+    content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+    background:#fff;transition:.2s;
+  }
+  .switch.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));}
+  .switch.on::after{left:21px;}
+  .danger-btn{
+    width:100%;padding:11px;border-radius:10px;border:1px solid #e5484d55;
+    background:#e5484d14;color:#f27983;font-size:13.5px;font-weight:600;
+  }
+  .danger-btn:hover{background:#e5484d22;}
+
+  /* ---------- Attachment ---------- */
+  .attach-btn{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+    background:var(--surface);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);
+    transition:.15s;
+  }
+  .attach-btn:hover{color:var(--accent);border-color:var(--accent);}
+  .attach-btn svg{width:17px;height:17px;}
+
+  #attachPreview{max-width:760px;margin:0 auto 8px;display:none;}
+  .attach-chip{
+    display:inline-flex;align-items:center;gap:9px;
+    background:var(--surface-2);border:1px solid var(--border);
+    border-radius:11px;padding:7px 10px 7px 8px;font-size:12.5px;
+  }
+  .attach-chip .thumb{
+    width:30px;height:30px;border-radius:7px;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;
+  }
+  .attach-chip .thumb svg{width:14px;height:14px;fill:currentColor;}
+  .attach-chip .name{color:var(--text);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .attach-chip .remove{color:var(--muted);font-size:15px;line-height:1;padding:2px 4px;}
+  .attach-chip .remove:hover{color:#f27983;}
+
+  .msg video{
+    max-width:260px;border-radius:12px;display:block;margin-bottom:8px;
+    border:1px solid var(--border);
+  }
+  .msg .video-tag{
+    display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
+    font-family:var(--font-mono);margin-bottom:6px;
+  }
+
+  /* honest rating badge */
+  .rating-box{
+    margin-top:10px;padding:10px 12px;border-radius:11px;
+    background:var(--accent-soft);border:1px solid var(--border);
+    display:flex;align-items:center;gap:10px;
+  }
+  .rating-box .stars{display:flex;gap:2px;}
+  .rating-box .stars svg{width:15px;height:15px;}
+  .rating-box .stars svg.filled{fill:var(--accent);}
+  .rating-box .stars svg.empty{fill:none;stroke:var(--muted);stroke-width:1.5;}
+  .rating-box .score{
+    font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--text);
+  }
+  .rating-box .label{font-size:11px;color:var(--muted);}
+</style>
+<style id="mea-features">
+.feature-section{padding:8px 12px 6px;background:var(--bg);border-top:1px solid var(--border);}
+.feature-head{display:flex;align-items:center;justify-content:space-between;max-width:760px;margin:0 auto 7px;padding:0 2px;}
+.feature-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;}
+.feature-grid{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;}
+.feature-chip{min-width:0;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:11px;padding:9px 7px;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.feature-chip:active{transform:scale(.98);border-color:var(--accent)}
+.analysis-status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;}
+.analysis-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rating-card{margin-top:10px;padding:14px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,var(--accent-soft),var(--surface));}
+.rating-main{display:flex;align-items:center;gap:12px;margin-bottom:10px}.rating-score{font:700 28px var(--font-mono);color:var(--text)}
+.rating-title{font-weight:700}.rating-sub{font-size:11px;color:var(--muted);margin-top:2px}.rating-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}.rating-item{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}.rating-item b{color:var(--text)}
+.feature-list{margin-top:10px;font-size:12px;line-height:1.55}.history-btn{margin-top:8px;width:100%;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:10px;padding:10px}
+@media(max-width:700px){.feature-section{padding:7px 10px 6px}.feature-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.feature-chip{font-size:11px;padding:9px 5px}.feature-chip:nth-child(4),.feature-chip:nth-child(5){grid-column:auto}}
+ </style>
+<style id="mobile-responsive-fix">
+*,*::before,*::after{box-sizing:border-box}
+html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
+body{min-width:0!important}
+img,video,canvas,iframe{max-width:100%}
+button,input,textarea,select{max-width:100%;min-width:0}
+@media(max-width:700px){
+main,#app,.app,.shell,.container,header,footer{width:100%!important;max-width:100vw!important;min-width:0!important}
+main{overflow-x:hidden!important}
+.msg,.message,.bubble{max-width:calc(100vw - 32px)!important;overflow-wrap:anywhere;word-break:break-word}
+}
+</style>\n<style id="clean-mobile-ui">
+html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+.header-right{flex:0 0 auto}
+@media(max-width:700px){
+  header{padding:12px 14px;min-height:64px}
+  .brand{min-width:0;flex:1}
+  .brand-text h1{font-size:16px;white-space:nowrap}
+  .brand-text .studio{font-size:9px}
+  .brand-mark{width:36px;height:36px}
+  .header-right{gap:6px}
+  #settingsBtn{width:42px;height:42px;flex:0 0 42px}
+  .empty-state{padding:24px 16px}
+  .modal{max-width:calc(100vw - 24px);max-height:90vh}
+  .modal-body{padding:16px}
+  .field select#modelSelect{width:100%;height:46px;font-size:14px;padding:0 12px}
+}
+</style>
+
+<style id="mobile-scroll-fix">
+html {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+body {
+  width: 100%;
+  min-width: 0 !important;
+  min-height: auto;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
+}
+main, #app, .app, .shell, .container {
+  min-width: 0 !important;
+  max-width: 100vw !important;
+}
+main {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  touch-action: pan-y !important;
+}
+@media (max-width:700px) {
+  html,body{width:100%;height:100%;overflow:hidden;}
+  body{overscroll-behavior:none;}
+  .app{height:100dvh;min-height:100dvh;}
+  header{padding:10px 12px;}
+  .brand-text h1{font-size:15px;}
+  main{min-height:0;overflow-y:auto;touch-action:pan-y;}
+  .messages{padding:14px 12px 10px;max-width:none;}
+  .composer-wrap{padding-left:10px;padding-right:10px;}
+  .composer{border-radius:14px;padding-left:10px;gap:7px;}
+  .composer textarea{font-size:15px;min-height:40px;}
+  .attach-btn{width:38px;height:38px;flex-shrink:0;}
+  .send-btn{width:40px;height:40px;}
+  .empty-state{padding:22px 16px;gap:12px;}
+  .empty-state h2{font-size:21px;}
+}
+</style>
+
+
+<style id="mea-v3-ui">
+.mea-nav{padding:8px 12px 7px;background:var(--bg);border-top:1px solid var(--border)}
+.mea-tabs{max-width:760px;margin:0 auto 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mea-tab{border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:10px;padding:8px 5px;font-size:11px;font-weight:700}
+.mea-tab.active{color:var(--text);background:var(--accent-soft);border-color:var(--accent)}
+.mea-panel{max-width:760px;margin:auto;display:none}
+.mea-panel.active{display:block}
+.mea-panel-title{font-size:11px;font-weight:700;color:var(--muted);margin:0 2px 6px}
+.mea-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.mea-card{min-width:0;text-align:left;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:11px;padding:9px 10px}
+.mea-card b{display:block;font-size:12px;margin-bottom:3px}
+.mea-card span{display:block;font-size:10px;color:var(--muted);line-height:1.35}
+.mea-progress{padding:10px;border:1px solid var(--border);background:var(--surface-2);border-radius:11px;font-size:12px;color:var(--text);margin-bottom:6px}
+.mea-history-open{width:100%;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:8px;font-size:11px;font-weight:700}
+@media(max-width:700px){
+ .mea-nav{padding:7px 10px 6px}
+ .mea-tabs{gap:4px}
+ .mea-tab{padding:8px 3px;font-size:10px}
+ .mea-cards{grid-template-columns:1fr 1fr;gap:5px}
+ .mea-card{padding:8px}
+}
+</style>
+
+<style id="quick-features-v5">
+.member-badge{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:18px;padding:8px 12px;font-weight:700;font-size:13px;max-width:150px}
+.member-badge span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Quick features are intentionally compact and collapsible so they never block the composer. */
+.quick-features{padding:6px 10px;background:var(--bg);border-top:1px solid var(--border)}
+.quick-title{max-width:760px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:10px}
+.quick-title-left{display:flex;align-items:center;gap:7px;min-width:0}
+.quick-title b{font-size:12px;color:var(--text)}
+.quick-toggle{border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:10px;padding:6px 10px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.quick-toggle:active{transform:scale(.97)}
+.quick-grid{max-width:760px;margin:7px auto 0;display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.quick-features.is-open .quick-grid{display:grid}
+.quick-card{min-height:48px;text-align:left;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:11px;padding:8px 10px;cursor:pointer;transition:.15s}
+.quick-card:active{transform:scale(.98)}
+.quick-card b{display:block;font-size:12px;margin-bottom:2px}
+.quick-card span{display:block;font-size:9px;color:var(--muted);line-height:1.25}
+.registration-overlay,.leaderboard-overlay{position:fixed;inset:0;z-index:9999;background:rgba(5,5,8,.88);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px}
+.registration-card,.leaderboard-card{width:min(430px,100%);background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:0 20px 70px rgba(0,0,0,.45);padding:26px}
+.registration-logo{width:76px;height:76px;margin:0 auto 14px;border-radius:22px;overflow:hidden;border:2px solid var(--accent)}
+.registration-logo img{width:100%;height:100%;object-fit:cover}
+.registration-kicker{text-align:center;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:2px}
+.registration-card h2{text-align:center;margin:8px 0;font-size:25px}
+.registration-card>p{text-align:center;color:var(--muted);line-height:1.55;margin:0 0 20px}
+.registration-card label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}
+.registration-card input{width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:13px;padding:14px;font-size:16px;outline:none}
+.registration-card input:focus{border-color:var(--accent)}
+.registration-submit{width:100%;margin-top:12px;border:0;border-radius:13px;padding:14px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;font-size:15px;font-weight:800}
+.registration-card small{display:block;text-align:center;color:var(--muted);font-size:10px;margin-top:12px}
+.leaderboard-overlay{display:none}
+.leaderboard-card{max-height:75vh;overflow:auto}
+.leaderboard-head{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px}
+.leaderboard-head h3{margin:0 0 4px}.leaderboard-head p{margin:0;color:var(--muted);font-size:11px}
+.leaderboard-head button{height:38px;width:38px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:10px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);background:var(--surface-2);border-radius:12px;margin-bottom:7px}
+.rank-num{width:28px;text-align:center;font-weight:800}.rank-name{flex:1;font-weight:700}.rank-score{font-weight:800;color:var(--accent)}
+@media(max-width:700px){
+ .member-badge{font-size:11px;padding:7px 9px;max-width:115px}
+ .quick-features{padding:5px 8px}
+ .quick-title b{font-size:11px}.quick-title{font-size:9px}
+ .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.quick-card{min-height:46px;padding:7px 8px}
+ .quick-card b{font-size:11px}.quick-card span{font-size:8.5px}
+ .quick-toggle{padding:5px 8px;font-size:9px}
+ .registration-card{padding:22px;border-radius:20px}
+}
+</style>
+
+<style id="leaderboard-pro-v1">
+.member-badge{position:relative;display:flex;align-items:center;gap:7px}
+.member-mini-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid var(--border);background:var(--surface-2);display:block;flex:none}
+.leaderboard-overlay{align-items:flex-start!important;padding:0!important;background:#0b0b0f!important;backdrop-filter:none!important;overflow:auto}
+.leaderboard-card{width:min(720px,100%);min-height:100dvh;max-height:none!important;border:0!important;border-radius:0!important;background:#101014!important;padding:0 16px 34px!important;box-shadow:none!important;overflow:visible!important}
+.lb-topbar{display:flex;align-items:center;gap:12px;padding:18px 0 12px;position:sticky;top:0;background:#101014;z-index:3}
+.lb-back{width:42px;height:42px;border:0;background:transparent;color:#fff;font-size:30px;line-height:1;border-radius:12px}
+.lb-title{font-family:var(--font-display);font-size:25px;font-weight:800;letter-spacing:-.03em}
+.lb-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border:1px solid #303039;border-radius:22px;padding:4px;background:#15151b;margin:6px 0 24px}
+.lb-tab{border:0;border-radius:17px;background:transparent;color:#777783;font-weight:800;padding:12px 5px;font-size:14px}
+.lb-tab.active{background:#73f0c8;color:#101014}
+.lb-hero{background:linear-gradient(145deg,#063b32,#075247);border-radius:26px;padding:18px 10px 22px;margin-bottom:28px;overflow:hidden}
+.lb-hero-title{font-family:var(--font-display);font-size:19px;font-weight:800;color:#b6ffe7;margin:0 0 12px 10px}
+.lb-podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:5px}
+.lb-podium-card{text-align:center;min-width:0}
+.lb-podium-card.first{transform:translateY(-8px)}
+.lb-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 7px;border:4px solid #eee;background:#2a2a30}
+.lb-podium-card.first .lb-avatar{width:98px;height:98px;border-color:#ffc83d;box-shadow:0 0 0 12px rgba(255,200,61,.10)}
+.lb-rank-dot{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;background:#ffd14f;color:#17130a;font-weight:900;margin-top:-17px;position:relative}
+.lb-podium-card:nth-child(2) .lb-rank-dot{background:#e5e5e5}.lb-podium-card:nth-child(3) .lb-rank-dot{background:#cd7f32;color:#fff}
+.lb-podium-name{color:#fff;font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
+.lb-podium-xp{color:#ffd35a;font-size:14px;font-weight:900;margin-top:4px}
+.lb-badge{display:inline-block;padding:6px 12px;border-radius:3px 12px 12px 3px;margin-top:6px;background:#f4c62e;color:#19150a;font-size:10px;font-weight:900}
+.lb-podium-card:nth-child(2) .lb-badge{background:#e03b46;color:#fff}.lb-podium-card:nth-child(3) .lb-badge{background:#d33b45;color:#fff}
+.lb-section-title{font-family:var(--font-display);font-size:20px;font-weight:800;margin:0 0 18px 2px}
+.lb-row{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:12px;padding:10px 2px 14px;border-bottom:1px solid #24242b}
+.lb-row-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#26262d;border:2px solid #34343c}
+.lb-row-rank{font-weight:900;color:#f4c44e;font-size:13px;text-align:center;margin-top:3px}
+.lb-row-main{min-width:0}.lb-row-name{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb-row-meta{display:flex;gap:7px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.lb-level{color:#a999d8;background:#241b38;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:800}.lb-member-pill{color:#d9d9df;background:#2b2b31;border-radius:10px;padding:4px 8px;font-size:10px;font-weight:800}
+.lb-row-score{color:#ffc84b;font-weight:900;font-size:15px;white-space:nowrap}.lb-row-score small{display:block;color:#8e8e98;font-size:9px;text-align:right;margin-top:2px}
+.lb-empty{padding:35px 10px;text-align:center;color:#858590}.lb-loading{padding:30px 10px;text-align:center;color:#858590}
+.lb-profile{margin-top:22px;padding:14px;border:1px solid #2a2a32;background:#15151b;border-radius:16px;color:#9c9ca7;font-size:11px;line-height:1.5}
+@media(max-width:520px){.leaderboard-card{padding:0 12px 28px!important}.lb-title{font-size:22px}.lb-hero{border-radius:22px}.lb-avatar{width:64px;height:64px}.lb-podium-card.first .lb-avatar{width:86px;height:86px}.lb-podium-name{font-size:12px}.lb-row{grid-template-columns:42px 1fr auto;gap:9px}.lb-row-avatar{width:42px;height:42px}.lb-row-name{font-size:14px}.lb-row-score{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">
+        <img src="avatar-assistant.png" alt="Motion Edit Academy">
+      </div>
+      <div class="brand-text">
+        <h1>Motion Edit Academy</h1>
+        <div class="studio">YUAN_STUDIO</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button type="button" class="member-badge" id="memberBadge" title="Profil member">👤 <span id="memberName">Member</span></button>
+<button type="button" class="icon-btn" id="settingsBtn" aria-label="Pengaturan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="scrubber"></div>
+
+  <main id="main">
+    <div class="empty-state" id="emptyState">
+      <div class="avatar-ring">
+        <img src="avatar-assistant.png" alt="Motion Edit Academy">
+      </div>
+      <h2>Apa yang ingin kamu buat?</h2>
+      <p>Motion Edit Academy siap membantu ide editing, transisi, color grading, dan berbagai kebutuhan kreatifmu.</p>
+      <div class="chips">
+        <button type="button" class="chip" data-prompt="Berikan ide transisi video yang smooth untuk konten Reels">Ide transisi Reels</button>
+        <button type="button" class="chip" data-prompt="Jelaskan cara color grading sinematik pemula">Color grading sinematik</button>
+        <button type="button" class="chip" data-prompt="Rekomendasikan alur belajar motion graphics dari nol">Roadmap motion graphics</button>
+      </div>
+    </div>
+    <div class="messages" id="messages" style="display:none;"></div>
+  </main>
+
+  <div class="composer-wrap">
+    <div id="attachPreview"></div>
+
+  <div class="feature-section quick-features" id="quickFeatures" aria-label="Fitur Cepat">
+    <div class="quick-title">
+      <div class="quick-title-left"><b>✨ FITUR CEPAT</b><span>opsional</span></div>
+      <button type="button" class="quick-toggle" id="quickToggle" aria-expanded="false">Tampilkan</button>
+    </div>
+    <div class="quick-grid">
+      <button type="button" class="quick-card" data-action="rate" data-prompt="Rating foto/video ini secara jujur dan detail. Berikan skor total 0-100 serta skor Hook, Cutting/Pacing, Transisi, Color Grading, Visual/Komposisi, Audio, dan Technical. Sebutkan 3 kelebihan, 3 kekurangan paling penting, dan 3 langkah perbaikan yang konkret. Jangan mengarang hal yang tidak terlihat.">
+        <b>🎯 Rating</b><span>Nilai karya & prioritas perbaikan</span>
+      </button>
+      <button type="button" class="quick-card" data-action="hook" data-prompt="Analisis hook/opening foto atau video ini. Nilai kekuatan hook 0-100, jelaskan daya tarik visualnya, dan berikan 3 alternatif hook yang lebih kuat.">
+        <b>🪝 Hook</b><span>Fokus 1–3 detik pertama</span>
+      </button>
+      <button type="button" class="quick-card" data-action="text" data-prompt="Buat dan evaluasi caption untuk karya ini. Berikan 3 versi caption: singkat, engaging, dan profesional, plus 5 hashtag yang relevan.">
+        <b>📝 Caption</b><span>Caption & ide posting</span>
+      </button>
+      <button type="button" class="quick-card" data-action="transition" data-prompt="Berikan 5 ide transisi yang cocok untuk gaya edit ini. Jelaskan kapan digunakan dan bagaimana membuatnya agar smooth, tidak berlebihan, dan tetap terlihat profesional.">
+        <b>✨ Transisi</b><span>Ide transisi yang cocok</span>
+      </button>
+      <button type="button" class="quick-card" data-action="roadmap" data-prompt="Buat roadmap belajar motion graphics untuk saya dari level sekarang menuju level profesional. Buat tahap, latihan, target mingguan, dan indikator keberhasilan yang jelas.">
+        <b>📚 Roadmap</b><span>Jalur belajar yang jelas</span>
+      </button>
+      <button type="button" class="quick-card" id="leaderboardBtn" data-action="leaderboard">
+        <b>🏆 Leaderboard</b><span>Lihat peringkat member</span>
+      </button>
+    </div>
+  </div>
+<div class="composer">
+      <button type="button" class="attach-btn" id="attachBtn" aria-label="Lampirkan foto/video" title="Lampirkan foto atau video hasil editan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <input type="file" id="videoInput" accept="image/*,video/*" style="display:none;">
+      <textarea id="input" rows="1" placeholder="Tanya apa saja, atau lampirkan foto/video hasil editanmu untuk direting jujur..."></textarea>
+      <button type="button" class="send-btn" id="sendBtn" aria-label="Kirim">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="footer-note">Motion Edit Academy • AI responses may be imperfect</div>
+  </div>
+</div>
+
+
+<!-- Member Registration -->
+<div class="registration-overlay" id="registrationOverlay" aria-modal="true" role="dialog">
+  <div class="registration-card">
+    <div class="registration-logo" id="profilePreview"><img src="avatar-assistant.png" alt="Foto profil"></div>
+    <div class="registration-kicker">MOTION EDIT ACADEMY</div>
+    <h2 id="profileTitle">Daftar sebagai Member</h2>
+    <p id="profileDescription">Masukkan nama dan foto profil. Foto akan tampil di leaderboard dan bisa dilihat member lain.</p>
+    <form id="registrationForm">
+      <label for="registrationName">Nama Member</label>
+      <input id="registrationName" name="name" maxlength="30" autocomplete="name" placeholder="Contoh: Mo Yuan" required>
+      <label for="avatarInput" style="display:block;margin-top:12px">Foto Profil (PP)</label>
+      <input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" style="width:100%;margin-top:6px;color:var(--muted);font-size:12px">
+      <button type="submit" class="registration-submit" id="profileSubmit">🚀 Mulai Belajar</button>
+    </form>
+    <small>Nama, foto profil, dan XP disinkronkan ke leaderboard online.</small>
+  </div>
+</div>
+
+<!-- Leaderboard Modal -->
+<div class="leaderboard-overlay" id="leaderboardOverlay" aria-modal="true" role="dialog">
+  <div class="leaderboard-card">
+    <div class="lb-topbar"><button type="button" class="lb-back" id="closeLeaderboard" aria-label="Kembali">‹</button><div class="lb-title">Top Konsisten</div></div>
+    <div class="lb-tabs"><button class="lb-tab active" data-period="all">All Time</button><button class="lb-tab" data-period="30d">30D</button><button class="lb-tab" data-period="7d">7D</button></div>
+    <div class="lb-hero"><div class="lb-hero-title">👑 The Big 3</div><div class="lb-podium" id="leaderboardPodium"></div></div>
+    <div class="lb-section-title">Top Member</div>
+    <div id="leaderboardList"></div>
+    <div class="lb-profile">💡 <b>PP member bisa diganti kapan saja.</b> Tekan nama/foto profil di bagian atas aplikasi untuk memilih foto baru. Foto profil akan tersimpan online agar tampil di leaderboard untuk member lain.</div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3>Pengaturan</h3>
+        <p>Konfigurasi Motion Edit Academy • Gemini API</p>
+      </div>
+      <button type="button" class="close-btn" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+<div class="field">
+        <label for="modelSelect">Model Gemini</label>
+        <select id="modelSelect" title="Pilih model Gemini">
+          <option value="">Memuat model...</option>
+        </select>
+        <div class="hint" id="modelHint">Hanya model Gemini yang mendukung chat akan ditampilkan.</div>
+      </div>
+
+            <div class="toggle-row">
+        <div>
+          <div class="label-main">Mode gelap</div>
+          <div class="label-sub" id="themeHint">Mengikuti pilihanmu</div>
+        </div>
+        <button type="button" class="switch on" id="themeSwitch"></button>
+      </div>
+
+      <div class="field" style="display:none">
+        <label for="apiKey">API Key</label>
+        <input type="password" id="apiKey" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="baseUrl">Proxy Gemini</label>
+        <input type="text" id="baseUrl" value="https://green-sunset-25b4.sandikap365.workers.dev" placeholder="https://nama-worker.nama.workers.dev">
+        <div class="hint">Proxy AI Motion Edit Academy. API key disimpan aman di Cloudflare dan tidak perlu dimasukkan oleh member.</div>
+      </div>
+
+      <div class="field">
+        <label for="systemPrompt">System Prompt</label>
+        <textarea id="systemPrompt" placeholder="Kamu adalah asisten Motion Edit Academy, ahli video editing dan motion graphics...">Kamu adalah Motion Edit Academy, asisten AI ahli video editing, motion graphics, dan color grading. Jawab dalam Bahasa Indonesia dengan jelas, praktis, jujur, dan tidak bertele-tele.
+
+Jika pengguna mengirim foto atau frame video untuk dinilai, lakukan REVIEW EDITING JUJUR. Untuk FOTO, Audio tidak dapat dinilai dan harus diberi keterangan "tidak dapat dinilai dari foto". Untuk VIDEO, nilai Audio hanya jika data audio benar-benar tersedia; jangan mengarang. Jangan memuji kosong dan jangan mengarang detail yang tidak terlihat. Nilai: Hook/impact, Cutting & pacing, Transisi, Color grading, Komposisi/visual, Audio jika terlihat/terdengar dari data yang tersedia, dan kualitas teknis. Berikan skor tiap kategori 0-100 dan skor TOTAL 0-100.
+
+Format rating wajib:
+RATING TOTAL: XX/100
+Hook: XX/100
+Cutting & Pacing: XX/100
+Transisi: XX/100
+Color Grading: XX/100
+Visual & Komposisi: XX/100
+Audio: XX/100
+Technical: XX/100
+
+Lalu tulis:
+KELEBIHAN:
+- ...
+- ...
+- ...
+
+KEKURANGAN:
+- ...
+- ...
+- ...
+
+PERBAIKAN PALING PENTING:
+1. ...
+2. ...
+3. ...
+
+Jika data tidak cukup untuk menilai kategori tertentu, katakan "tidak dapat dinilai dari materi yang dikirim", jangan mengarang.</textarea>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Progress Rating</label>
+        <div class="hint" id="ratingProgress">Belum ada rating tersimpan.</div>
+      </div>
+      <button type="button" class="history-btn" id="showProgress">📊 Lihat progress rating</button>
+      <button type="button" class="danger-btn" id="clearChat">Hapus percakapan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global safety net (moved to top): if ANY later code throws, show a visible
+  // banner instead of silently leaving buttons unresponsive.
+  window.addEventListener('error', (e)=>{
+    if(document.getElementById('meaErrorBanner')) return;
+    const bar = document.createElement('div');
+    bar.id = 'meaErrorBanner';
+    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#e5484d;color:#fff;font-size:12px;padding:10px 14px;z-index:9999;font-family:sans-serif;';
+    bar.textContent = 'Terjadi error: ' + (e.message || 'unknown') + ' — coba muat ulang halaman.';
+    document.body.appendChild(bar);
+  });
+  // ---------- Safe storage (won't crash the app if localStorage is blocked) ----------
+  function storageGet(key, fallback){
+    try{ const v = localStorage.getItem(key); return v===null ? (fallback===undefined?null:fallback) : v; }
+    catch(e){ console.warn('storage blocked, using fallback for', key, e); return fallback===undefined?null:fallback; }
+  }
+  function storageSet(key, value){
+    try{ localStorage.setItem(key, value); }catch(e){ console.warn('storage set blocked for', key, e); }
+  }
+  function storageRemove(key){
+    try{ localStorage.removeItem(key); }catch(e){ console.warn('storage remove blocked for', key, e); }
+  }
+  // ---------- Theme ----------
+  const root = document.documentElement;
+  const themeSwitch = document.getElementById('themeSwitch');
+  const themeHint = document.getElementById('themeHint');
+  function applyTheme(t){
+    root.setAttribute('data-theme', t);
+    themeSwitch.classList.toggle('on', t==='dark');
+    themeHint.textContent = t==='dark' ? 'Mode gelap aktif' : 'Mode terang aktif';
+    storageSet('mea_theme', t);
+  }
+  let savedTheme = storageGet('mea_theme') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(savedTheme);
+  themeSwitch.addEventListener('click', ()=>{
+    applyTheme(root.getAttribute('data-theme')==='dark' ? 'light' : 'dark');
+  });
+
+
+  // ---------- MEA v3 navigation ----------
+  document.querySelectorAll('.mea-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.mea-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.mea-panel').forEach(x=>x.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel)?.classList.add('active');
+      updateProgress();
+    });
+  });
+
+  document.querySelectorAll('.mea-card').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const prompt=btn.dataset.prompt || '';
+      if(btn.dataset.action==='rate' && !attachedFile){
+        input.value='';
+        input.placeholder='Lampirkan foto/video dulu, lalu tekan ⭐ Rating.';
+        input.focus();
+        return;
+      }
+      input.value=prompt;
+      autoGrow();
+      input.focus();
+      sendBtn.disabled=false;
+    });
+  });
+
+  // ---------- Settings modal ----------
+  const overlay = document.getElementById('overlay');
+  document.getElementById('settingsBtn').addEventListener('click', ()=> { overlay.classList.add('open'); });
+  document.getElementById('closeModal').addEventListener('click', ()=> overlay.classList.remove('open'));
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('open'); });
+
+  // persist settings
+  const apiKeyEl = document.getElementById('apiKey');
+  const baseUrlEl = document.getElementById('baseUrl');
+  const sysPromptEl = document.getElementById('systemPrompt');
+  const modelSelect = document.getElementById('modelSelect');
+
+  apiKeyEl.value = storageGet('mea_apikey') || '';
+  baseUrlEl.value = storageGet('mea_baseurl') || baseUrlEl.value;
+  sysPromptEl.value = storageGet('mea_sysprompt') || sysPromptEl.value;
+  modelSelect.value = storageGet('mea_model') || modelSelect.value;
+
+
+  function isProxyConfigured(){
+    const u = (baseUrlEl.value || '').trim();
+    return !!u && /^https?:\/\//i.test(u);
+  }
+
+  function getGeminiBase(){
+    const configured = (baseUrlEl.value || '').trim().replace(/\/+$/,'');
+    return configured || 'https://generativelanguage.googleapis.com/v1beta';
+  }
+
+  async function loadGeminiModels(){
+    const base = getGeminiBase();
+    const previous = storageGet('mea_model') || '';
+    modelSelect.disabled = true;
+    modelSelect.innerHTML = '<option value="">Memuat model yang tersedia...</option>';
+
+    try{
+      const res = await fetch(base + '/models?pageSize=1000', {
+        method:'GET',
+      });
+      const data = await res.json();
+
+      if(!res.ok){
+        throw new Error(data?.error?.message || ('HTTP ' + res.status));
+      }
+
+      const models = (data.models || [])
+        .filter(m => Array.isArray(m.supportedGenerationMethods)
+          && m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => ({
+          id: String(m.name || '').replace(/^models\//,''),
+          label: m.displayName || String(m.name || '').replace(/^models\//,''),
+          desc: m.description || ''
+        }))
+        .filter(m => m.id && /^gemini/i.test(m.id))
+        .filter(m => !/(embedding|imagen|veo|lyria|robotics|computer-use|aqa)/i.test(m.id))
+        .sort((a,b) => a.label.localeCompare(b.label));
+
+      if(!models.length){
+        throw new Error('Tidak ada model generateContent yang tersedia untuk API Key ini.');
+      }
+
+      availableGeminiModels = models.map(m => m.id);
+      modelSelect.innerHTML = '';
+      models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.label + ' — tersedia';
+        if(m.id === previous) opt.selected = true;
+        modelSelect.appendChild(opt);
+      });
+
+      // If the previously selected model is no longer available, use the first
+      // model returned for this API key and save it.
+      if(!models.some(m => m.id === previous)){
+        modelSelect.selectedIndex = 0;
+        storageSet('mea_model', modelSelect.value);
+      }
+      modelSelect.disabled = false;
+      const hint = document.getElementById('modelHint');
+      if(hint) hint.textContent = models.length + ' model Gemini yang tersedia untuk API Key ini.';
+    }catch(err){
+      modelSelect.innerHTML = '<option value="">Gagal memuat model</option>';
+      modelSelect.disabled = true;
+      console.error('Gemini ListModels:', err);
+    }
+  }
+
+
+  [baseUrlEl,sysPromptEl].forEach(el=>{
+    el.addEventListener('change', ()=>{
+      storageSet('mea_baseurl', baseUrlEl.value.trim().replace(/\/+$/,''));
+      storageSet('mea_sysprompt', sysPromptEl.value);
+      if(el === baseUrlEl) loadGeminiModels();
+    });
+  });
+  loadGeminiModels();
+  modelSelect.addEventListener('change', ()=> { if(modelSelect.value) storageSet('mea_model', modelSelect.value); });
+
+  // ---------- Chat ----------
+  const emptyState = document.getElementById('emptyState');
+  const messagesEl = document.getElementById('messages');
+  const input = document.getElementById('input');
+  const sendBtn = document.getElementById('sendBtn');
+  const main = document.getElementById('main');
+
+  let history = [];
+  try{
+    history = JSON.parse(storageGet('mea_history') || '[]');
+    if(!Array.isArray(history)) history = [];
+  }catch(e){
+    console.warn('Riwayat chat tersimpan rusak, direset otomatis.', e);
+    storageRemove('mea_history');
+    history = [];
+  }
+  let availableGeminiModels = [];
+  const sessionVideos = {}; // index -> objectURL, session-only (not persisted)
+  let attachedFile = null;
+
+  function renderAll(){
+    if(history.length === 0){
+      emptyState.style.display='flex';
+      messagesEl.style.display='none';
+      messagesEl.innerHTML='';
+      return;
+    }
+    emptyState.style.display='none';
+    messagesEl.style.display='flex';
+    messagesEl.innerHTML='';
+    history.forEach((m,i)=> messagesEl.appendChild(buildBubble(m, i)));
+    main.scrollTop = main.scrollHeight;
+  }
+
+  function starsSVG(filled){
+    return `<svg class="${filled?'filled':'empty'}" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01z"/></svg>`;
+  }
+
+  function parseRating(text){ return null; }
+
+  function buildBubble(m, index){
+    const { role, content } = m;
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + (role==='user' ? 'user':'assistant');
+    const av = document.createElement('div');
+    av.className = 'bubble-avatar';
+    if(role==='user'){
+      av.textContent = 'Kamu';
+    } else {
+      av.innerHTML = '<img src="avatar-assistant.png" alt="M">';
+    }
+    const b = document.createElement('div');
+    b.className = 'bubble';
+
+    if(role==='user' && m.videoName){
+      const isImage = m.isImage;
+      const tag = document.createElement('div');
+      tag.className = 'video-tag';
+      tag.innerHTML = (isImage ? '🖼️ ' : '🎬 ') + m.videoName;
+      b.appendChild(tag);
+      if(sessionVideos[index]){
+        if(isImage){
+          const img = document.createElement('img');
+          img.src = sessionVideos[index];
+          img.style.cssText = 'max-width:260px;border-radius:12px;display:block;margin-bottom:8px;border:1px solid var(--border);';
+          b.appendChild(img);
+        } else {
+          const vid = document.createElement('video');
+          vid.src = sessionVideos[index];
+          vid.controls = true;
+          b.appendChild(vid);
+        }
+      }
+      const p = document.createElement('div');
+      p.textContent = content;
+      b.appendChild(p);
+    } else {
+      b.textContent = content;
+    }
+
+    if(role==='assistant'){
+      attachRatingCard(b, content);
+      const rating = parseRating(content);
+      if(rating){
+        const box = document.createElement('div');
+        box.className = 'rating-box';
+        let starsHtml = '';
+        const filledCount = Math.round(rating.score/2);
+        for(let s=1;s<=5;s++) starsHtml += starsSVG(s<=filledCount);
+        box.innerHTML = `<div class="stars">${starsHtml}</div><div><div class="score">${rating.score}/10 • Rating Jujur</div><div class="label">${rating.reason || ''}</div></div>`;
+        b.appendChild(box);
+      }
+    }
+
+    wrap.appendChild(av); wrap.appendChild(b);
+    return wrap;
+  }
+
+  function autoGrow(){
+    input.style.height='auto';
+    input.style.height = Math.min(input.scrollHeight,140)+'px';
+  }
+  input.addEventListener('input', autoGrow);
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  document.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{ input.value = chip.dataset.prompt; autoGrow(); send(); });
+  });
+  document.querySelectorAll('.feature-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      input.value=chip.dataset.prompt || '';
+      autoGrow();
+      input.focus();
+      if(chip.dataset.action==='rate' && !attachedFile){
+        input.value='🎯 ' + input.value + ' Silakan lampirkan foto/video dengan tombol 📎 agar bisa dinilai.';
+        autoGrow();
+      }
+    });
+  });
+  sendBtn.addEventListener('click', send);
+
+  // ---------- Attachment (video) ----------
+  const attachBtn = document.getElementById('attachBtn');
+  const videoInput = document.getElementById('videoInput');
+  const attachPreview = document.getElementById('attachPreview');
+
+  attachBtn.addEventListener('click', ()=> videoInput.click());
+  videoInput.addEventListener('change', ()=>{
+    const file = videoInput.files[0];
+    if(!file) return;
+    if(file.size > 25 * 1024 * 1024){
+      alert('File terlalu besar. Pilih foto/video maksimal 25 MB.');
+      videoInput.value='';
+      return;
+    }
+    attachedFile = file;
+    renderAttachPreview();
+    const isImage = file.type.startsWith('image/');
+    if(!input.value.trim()) input.placeholder = isImage
+      ? 'Minta reting jujur untuk foto ini... (opsional, boleh langsung kirim)'
+      : 'Minta reting jujur untuk video ini... (opsional, boleh langsung kirim)';
+  });
+
+  let lastThumbURL = null;
+  function renderAttachPreview(){
+    if(lastThumbURL){ URL.revokeObjectURL(lastThumbURL); lastThumbURL = null; }
+    if(!attachedFile){
+      attachPreview.style.display='none';
+      attachPreview.innerHTML='';
+      return;
+    }
+    const isImage = attachedFile.type.startsWith('image/');
+    attachPreview.style.display='block';
+    let thumbInner;
+    if(isImage){
+      lastThumbURL = URL.createObjectURL(attachedFile);
+      thumbInner = `<img src="${lastThumbURL}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
+    } else {
+      thumbInner = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+    }
+    attachPreview.innerHTML = `
+      <div class="attach-chip">
+        <div class="thumb">${thumbInner}</div>
+        <span class="name">${attachedFile.name}</span>
+        <button type="button" class="remove" id="removeAttach" aria-label="Hapus lampiran">✕</button>
+      </div>`;
+    document.getElementById('removeAttach').addEventListener('click', ()=>{
+      attachedFile = null;
+      videoInput.value = '';
+      renderAttachPreview();
+    });
+  }
+
+  function imageToDataURL(file, maxW=1280, quality=0.72){
+    return new Promise((resolve,reject)=>{
+      const url=URL.createObjectURL(file), img=new Image();
+      img.onload=()=>{
+        try{
+          const scale=Math.min(1,maxW/(img.naturalWidth||img.width||maxW));
+          const canvas=document.createElement('canvas');
+          canvas.width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+          canvas.height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+          const ctx=canvas.getContext('2d',{alpha:false}); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          URL.revokeObjectURL(url); resolve(canvas.toDataURL('image/jpeg',quality));
+        }catch(e){URL.revokeObjectURL(url);reject(e)}
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Gagal membaca foto'))}; img.src=url;
+    });
+  }
+
+  function fileToDataURL(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function extractFrames(file, count=4){
+    return new Promise((resolve, reject)=>{
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      const objUrl = URL.createObjectURL(file);
+      video.src = objUrl;
+      const frames = [];
+      let times = [];
+      let idx = 0;
+      const canvas = document.createElement('canvas');
+
+      video.addEventListener('loadedmetadata', ()=>{
+        const d = video.duration || 0;
+        times = Array.from({length:count}, (_,i)=> Math.max(0, d * ((i+1)/(count+1))));
+        captureNext();
+      });
+
+      function captureNext(){
+        if(idx >= times.length){
+          resolve({ frames, objUrl });
+          return;
+        }
+        video.currentTime = times[idx];
+      }
+
+      video.addEventListener('seeked', ()=>{
+        const maxW = 720;
+        const vw = video.videoWidth || 640, vh = video.videoHeight || 360;
+        const scale = Math.min(1, maxW / vw);
+        canvas.width = Math.max(1, Math.round(vw * scale));
+        canvas.height = Math.max(1, Math.round(vh * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        frames.push(canvas.toDataURL('image/jpeg', 0.55));
+        idx++;
+        captureNext();
+      });
+
+      video.addEventListener('error', ()=> reject(new Error('Gagal membaca file video')));
+    });
+  }
+
+  function isRatingRequest(text, file){
+    return !!file || /rating|reting|nilai|review.*foto|review.*video|bagus.*nggak|bagus.*gak/i.test(text || '');
+  }
+
+  function parseStructuredRating(text){
+    const get = (name) => {
+      const re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*:\\s*(\\d{1,3})\\s*/\\s*100','i');
+      const m = text.match(re);
+      return m ? Math.max(0, Math.min(100, Number(m[1]))) : null;
+    };
+    const total = get('RATING TOTAL') ?? get('Rating');
+    if(total === null) return null;
+    return {
+      total,
+      cats:[
+        ['Hook',get('Hook')],['Cutting & Pacing',get('Cutting & Pacing')],
+        ['Transisi',get('Transisi')],['Color Grading',get('Color Grading')],
+        ['Visual & Komposisi',get('Visual & Komposisi')],['Audio',get('Audio')],
+        ['Technical',get('Technical')]
+      ].filter(x=>x[1]!==null)
+    };
+  }
+
+  function attachRatingCard(b, text){
+    const r=parseStructuredRating(text);
+    if(!r) return;
+    const card=document.createElement('div');
+    card.className='rating-card';
+    const rows=r.cats.map(([n,v])=>`<div class="rating-item"><span>${n}</span><b>${v}</b></div>`).join('');
+    card.innerHTML=`<div class="rating-main"><div class="rating-score">${r.total}<small style="font-size:13px">/100</small></div><div><div class="rating-title">${r.total>=90?'🔥 Sangat bagus':r.total>=80?'✨ Bagus':r.total>=70?'👍 Cukup bagus':r.total>=60?'🛠️ Perlu polesan':'⚠️ Perlu banyak perbaikan'}</div><div class="rating-sub">Rating editing berdasarkan materi yang dikirim</div></div></div><div class="rating-grid">${rows}</div>`;
+    b.appendChild(card);
+    saveRating(r.total);
+  }
+
+  function saveRating(score){
+    try{
+      const key='mea_rating_saved_'+score+'_'+history.length;
+      if(storageGet(key)) return;
+      storageSet(key,'1');
+      const arr=JSON.parse(storageGet('mea_ratings','[]')||'[]');
+      arr.push({score,date:new Date().toLocaleString('id-ID'),model:modelSelect.value});
+      storageSet('mea_ratings',JSON.stringify(arr.slice(-50)));
+    }catch(e){}
+  }
+
+  function getFallbackModels(selected){
+    const preferred=['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-flash','gemini-1.5-flash-latest'];
+    return [...new Set([...preferred.filter(x=>availableGeminiModels.includes(x) && x!==selected),...availableGeminiModels.filter(x=>x!==selected && /flash/i.test(x))])];
+  }
+
+  async function callGemini(model, contents, apiKey, options={}){
+    const endpoint=getGeminiBase()+'/models/'+encodeURIComponent(model)+':generateContent';
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(), options.timeout||45000);
+    try{
+      const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,
+        body:JSON.stringify({systemInstruction:{parts:[{text:sysPromptEl.value}]},contents,generationConfig:{temperature:options.rating?0.25:0.55,maxOutputTokens:options.rating?1100:1600}})});
+      let data={}; try{data=await res.json()}catch(e){}
+      if(!res.ok) throw Object.assign(new Error(data?.error?.message||('HTTP '+res.status)),{status:res.status,data});
+      if(data?.promptFeedback?.blockReason) throw new Error('Permintaan diblokir Gemini: '+data.promptFeedback.blockReason);
+      return data?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').filter(Boolean).join('\n') || 'Maaf, Gemini tidak mengirim respons.';
+    }catch(e){
+      if(e.name==='AbortError') throw Object.assign(new Error('Waktu analisis habis. Coba foto yang lebih kecil atau kirim lagi.'),{status:408});
+      throw e;
+    }finally{clearTimeout(timeout)}
+  }
+
+  async function send(){
+    const text = input.value.trim();
+    const file = attachedFile;
+    if(!text && !file) return;
+
+    const userEntry = {
+      role:'user',
+      content: text || (file
+        ? (file.type.startsWith('image/') ? 'Tolong rating foto hasil editan ini secara jujur.' : 'Tolong rating hasil editan video ini secara jujur.')
+        : '')
+    };
+    if(file){
+      userEntry.videoName = file.name;
+      userEntry.isImage = file.type.startsWith('image/');
+    }
+
+    history.push(userEntry);
+    const newIndex = history.length - 1;
+    if(file) sessionVideos[newIndex] = URL.createObjectURL(file);
+
+    storageSet('mea_history', JSON.stringify(history));
+    input.value=''; autoGrow();
+    input.placeholder = 'Tanya apa saja, atau lampirkan foto/video hasil editanmu untuk direting jujur...';
+    attachedFile = null; videoInput.value=''; renderAttachPreview();
+    renderAll();
+
+    emptyState.style.display='none';
+    messagesEl.style.display='flex';
+    const loadWrap = document.createElement('div');
+    loadWrap.className='msg assistant';
+    loadWrap.innerHTML = `<div class="bubble-avatar"><img src="avatar-assistant.png" alt="M"></div><div class="bubble loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    messagesEl.appendChild(loadWrap);
+    main.scrollTop = main.scrollHeight;
+    sendBtn.disabled = true;
+
+    try{
+      let currentParts = [{text: userEntry.content}];
+
+      if(file){
+        const isImage = file.type.startsWith('image/');
+        loadWrap.querySelector('.bubble').innerHTML = isImage
+          ? '<span class="analysis-status"><span class="analysis-spinner"></span><span>Menganalisis foto dengan AI…</span></span>'
+          : '<span class="analysis-status"><span class="analysis-spinner"></span><span>Menganalisis beberapa bagian video…</span></span>';
+
+        let images = isImage
+          ? [await imageToDataURL(file,960,0.58)]
+          : (await extractFrames(file, 4)).frames;
+
+        currentParts.push({
+          text: isImage
+            ? 'Foto terlampir untuk dinilai. Berikan review jujur sesuai system prompt.'
+            : 'Beberapa frame terpilih dari video terlampir. Nilai video berdasarkan frame-frame ini dan jangan mengarang detail yang tidak terlihat. Berikan review jujur sesuai system prompt.'
+        });
+
+        for(const dataUrl of images){
+          const comma = dataUrl.indexOf(',');
+          const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+          currentParts.push({
+            inline_data:{
+              mime_type:'image/jpeg',
+              data:base64
+            }
+          });
+        }
+      }
+
+      // Gemini REST API menggunakan contents dengan role user/model.
+      // System prompt dikirim melalui systemInstruction.
+      const contents = history.slice(0, -1)
+        .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{text: m.content}]
+        }));
+
+      contents.push({
+        role:'user',
+        parts: currentParts
+      });
+
+      let reply = '';
+      let selectedModel = modelSelect.value;
+      const ratingMode = isRatingRequest(text,file);
+      try {
+        reply = await callGemini(selectedModel, contents, null, {rating:ratingMode, timeout:ratingMode?35000:45000});
+      } catch(firstErr) {
+        const temporary = [408,429,500,502,503,504].includes(firstErr.status) || /high demand|overload|temporar|rate.?limit|quota|busy/i.test(firstErr.message||'');
+        if(!temporary) throw firstErr;
+        const fallbacks = getFallbackModels(selectedModel);
+        let lastErr=firstErr;
+        for(const fallback of fallbacks){
+          try {
+            reply = await callGemini(fallback, contents, null, {rating:ratingMode, timeout:ratingMode?30000:40000});
+            selectedModel = fallback; break;
+          } catch(e){ lastErr=e; }
+        }
+        if(!reply){
+          await new Promise(r=>setTimeout(r,1200));
+          try { reply=await callGemini(selectedModel, contents, null, {rating:ratingMode, timeout:ratingMode?30000:40000}); }
+          catch(e){ lastErr=e; }
+        }
+        if(!reply) throw lastErr;
+      }
+      loadWrap.remove();
+      if(selectedModel !== modelSelect.value){
+        // Jangan memaksa pilihan model berubah; hanya beri tahu pengguna fallback dipakai.
+        reply = 'ℹ️ Model utama sedang sibuk. Saya otomatis memakai model cadangan yang tersedia.\n\n' + reply;
+      }
+
+      history.push({role:'assistant', content:reply});
+      storageSet('mea_history', JSON.stringify(history));
+      renderAll();
+
+    }catch(err){
+      loadWrap.remove();
+      history.push({role:'assistant', content:'❌ Gemini belum bisa memproses permintaan. '+(err?.message || err)+'\n\nJika model sedang penuh, coba kirim lagi beberapa saat kemudian atau pilih model Flash lain di Pengaturan.'});
+      storageSet('mea_history', JSON.stringify(history));
+      renderAll();
+    }finally{
+      sendBtn.disabled = false;
+    }
+  }
+
+  document.getElementById('clearChat').addEventListener('click', ()=>{
+    history = [];
+    Object.values(sessionVideos).forEach(u=> URL.revokeObjectURL(u));
+    Object.keys(sessionVideos).forEach(k=> delete sessionVideos[k]);
+    attachedFile = null; videoInput.value=''; renderAttachPreview();
+    storageRemove('mea_history');
+    renderAll();
+    overlay.classList.remove('open');
+  });
+
+  function updateProgress(){
+    const el=document.getElementById('ratingProgress'); if(!el) return;
+    let a=[]; try{a=JSON.parse(storageGet('mea_ratings','[]')||'[]')}catch(e){}
+    if(!a.length){el.textContent='Belum ada rating tersimpan.';return;}
+    const avg=Math.round(a.reduce((s,x)=>s+Number(x.score||0),0)/a.length);
+    el.textContent=`${a.length} rating • rata-rata ${avg}/100 • ${avg>=85?'Progress bagus 🔥':avg>=70?'Terus latihan 💪':'Masih banyak ruang untuk berkembang 🎯'}`;
+    const panel=document.getElementById('meaProgressSummary'); if(panel) panel.textContent=el.textContent;
+  }
+  document.getElementById('showProgress')?.addEventListener('click',()=>{
+    updateProgress();
+    alert(document.getElementById('ratingProgress')?.textContent || 'Belum ada rating.');
+  });
+  updateProgress();
+  renderAll();
+</script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('service-worker.js?v=30').catch(()=>{});
+    });
+  }
+</script>
+<script id="mobile-overflow-fix">(function(){function f(){document.documentElement.style.overflowX="hidden";document.body.style.overflowX="hidden";document.documentElement.style.width="100%";document.body.style.width="100%"}f();addEventListener("resize",f,{passive:true})})();</script>
+<script id="mobile-scroll-runtime">
+(function(){
+  function enablePageScroll(){
+    document.documentElement.style.overflowY = 'auto';
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowY = 'auto';
+    document.body.style.overflowX = 'hidden';
+    document.body.style.touchAction = 'pan-y';
+  }
+  enablePageScroll();
+  window.addEventListener('resize', enablePageScroll, {passive:true});
+})();
+</script>
+
+
+<script id="member-registration-online-v1">
+(function(){
+  const quick=document.getElementById('quickFeatures'); const quickToggle=document.getElementById('quickToggle');
+  const QUICK_KEY='mea_quick_features_open_v1';
+  function setQuick(open,save=true){if(!quick||!quickToggle)return;quick.classList.toggle('is-open',open);quickToggle.textContent=open?'Sembunyikan':'Tampilkan';quickToggle.setAttribute('aria-expanded',String(open));if(save)localStorage.setItem(QUICK_KEY,open?'1':'0');}
+  setQuick(localStorage.getItem(QUICK_KEY)==='1',false); quickToggle?.addEventListener('click',()=>setQuick(!quick?.classList.contains('is-open')));
+  const KEY='mea_member_name_v4', IDKEY='mea_member_id_v1', SCORE='mea_member_score_v4', AVATARKEY='mea_member_avatar_v1';
+  const overlay=document.getElementById('registrationOverlay'), form=document.getElementById('registrationForm'), nameInput=document.getElementById('registrationName'), nameEl=document.getElementById('memberName'), badge=document.getElementById('memberBadge'), board=document.getElementById('leaderboardOverlay'), list=document.getElementById('leaderboardList'), podium=document.getElementById('leaderboardPodium'), avatarInput=document.getElementById('avatarInput'), preview=document.getElementById('profilePreview'), title=document.getElementById('profileTitle'), desc=document.getElementById('profileDescription'), submit=document.getElementById('profileSubmit');
+  function getName(){return localStorage.getItem(KEY)||''} function getId(){return localStorage.getItem(IDKEY)||''} function getScore(){return Number(localStorage.getItem(SCORE)||0)} function getAvatar(){return localStorage.getItem(AVATARKEY)||''}
+  function makeId(){if(window.crypto?.randomUUID)return crypto.randomUUID().replace(/-/g,'');return 'm'+Date.now().toString(36)+Math.random().toString(36).slice(2,12)}
+  async function api(path,options={}){const res=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok===false)throw new Error(data.message||data.error||('HTTP '+res.status));return data}
+  function setPreview(src){const img=preview?.querySelector('img');if(img)img.src=src||'avatar-assistant.png';const mini=document.getElementById('memberMiniAvatar');if(mini)mini.src=src||'avatar-assistant.png'}
+  async function compressAvatar(file){return new Promise((resolve,reject)=>{if(!file)return resolve('');const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const size=128,c=document.createElement('canvas');c.width=size;c.height=size;const ctx=c.getContext('2d');const scale=Math.max(size/img.width,size/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);resolve(c.toDataURL('image/webp',.72))};img.onerror=reject;img.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+  async function syncMember(){const name=getName();if(!name)return false;let id=getId();if(!id){id=makeId();localStorage.setItem(IDKEY,id)}try{const data=await api('/api/member',{method:'POST',body:JSON.stringify({id,name,avatar:getAvatar()})});localStorage.setItem(SCORE,String(data.member?.xp||0));if(data.member?.avatar&&!getAvatar())localStorage.setItem(AVATARKEY,data.member.avatar);setPreview(getAvatar()||data.member?.avatar||'');return true}catch(e){console.warn('leaderboard sync failed',e);return false}}
+  function openProfile(isNew=false){title.textContent=isNew?'Daftar sebagai Member':'Profil Member';desc.textContent=isNew?'Masukkan nama dan foto profil. Foto akan tampil di leaderboard dan bisa dilihat member lain.':'Ganti nama atau foto profil kamu. Perubahan akan terlihat di leaderboard semua member.';submit.textContent=isNew?'🚀 Mulai Belajar':'💾 Simpan Profil';nameInput.value=getName();if(avatarInput)avatarInput.value='';setPreview(getAvatar());overlay.style.display='flex';setTimeout(()=>nameInput?.focus(),100)}
+  const saved=getName(); if(saved){nameEl.textContent=saved;overlay.style.display='none';syncMember()} else openProfile(true);
+  form?.addEventListener('submit',async e=>{e.preventDefault();let n=nameInput.value.trim().replace(/\s+/g,' ').slice(0,30);if(!n)return;localStorage.setItem(KEY,n);if(!getId())localStorage.setItem(IDKEY,makeId());try{if(avatarInput?.files?.[0]){const av=await compressAvatar(avatarInput.files[0]);if(av)localStorage.setItem(AVATARKEY,av)}}catch(err){console.warn('avatar compress failed',err)}nameEl.textContent=n;overlay.style.display='none';if(!localStorage.getItem(SCORE))localStorage.setItem(SCORE,'0');syncMember();updateHeaderAvatar()});
+  avatarInput?.addEventListener('change',async()=>{try{const av=await compressAvatar(avatarInput.files?.[0]);if(av){setPreview(av);localStorage.setItem(AVATARKEY,av)}}catch(e){console.warn(e)}});
+  badge?.addEventListener('click',()=>openProfile(false));
+  function updateHeaderAvatar(){let img=document.getElementById('memberMiniAvatar');const av=getAvatar()||'avatar-assistant.png';if(!img){img=document.createElement('img');img.id='memberMiniAvatar';img.className='member-mini-avatar';badge?.prepend(img);const first=badge?.querySelector('span');if(first)first.style.order='2'}img.src=av}
+  updateHeaderAvatar();
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+  function level(xp){return Math.max(1,Math.floor((Number(xp)||0)/1000)+1)}
+  function avatar(m){return m.avatar||'avatar-assistant.png'}
+  function podiumCard(m,position){if(!m)return '';const first=position===1;return `<div class="lb-podium-card ${first?'first':''}"><img class="lb-avatar" src="${avatar(m)}" alt="Foto ${escapeHtml(m.name)}"><div class="lb-rank-dot">${position}</div><div class="lb-podium-name">${escapeHtml(m.name)}</div><div class="lb-podium-xp">${Number(m.xp)||0} XP</div><div class="lb-badge">${first?'✦ TOP 1':position===2?'✦ TOP 2':'✦ TOP 3'}</div></div>`}
+  function renderRows(rows){if(!rows.length){list.innerHTML='<div class="lb-empty">Belum ada member di periode ini.</div>';return}list.innerHTML=rows.map((m,i)=>`<div class="lb-row"><div><img class="lb-row-avatar" src="${avatar(m)}" alt="Foto ${escapeHtml(m.name)}"><div class="lb-row-rank">#${i+1}</div></div><div class="lb-row-main"><div class="lb-row-name">${escapeHtml(m.name)}</div><div class="lb-row-meta"><span class="lb-level">🎓 Lv. ${level(m.xp)}</span><span class="lb-member-pill">✦ MEMBER</span></div></div><div class="lb-row-score">${Number(m.xp)||0}<small>XP</small></div></div>`).join('')}
+  let currentPeriod='all';
+  async function renderBoard(period=currentPeriod){currentPeriod=period;list.innerHTML='<div class="lb-loading">Memuat leaderboard online...</div>';podium.innerHTML='';try{await syncMember();const data=await api('/api/leaderboard?period='+encodeURIComponent(period));const rows=data.members||[];podium.innerHTML=[rows[1],rows[0],rows[2]].map((m,i)=>m?podiumCard(m,[2,1,3][i]):'<div></div>').join('');renderRows(rows);document.querySelectorAll('.lb-tab').forEach(b=>b.classList.toggle('active',b.dataset.period===period))}catch(e){list.innerHTML='<div class="lb-empty">Leaderboard online belum terhubung.<br><small>Pastikan deploy memakai ZIP versi FINAL ini dan binding LEADERBOARD sudah aktif.</small></div>'}}
+  document.getElementById('leaderboardBtn')?.addEventListener('click',()=>{board.style.display='flex';renderBoard('all')});document.getElementById('closeLeaderboard')?.addEventListener('click',()=>board.style.display='none');board?.addEventListener('click',e=>{if(e.target===board)board.style.display='none'});document.querySelectorAll('.lb-tab').forEach(b=>b.addEventListener('click',()=>renderBoard(b.dataset.period)));
+  async function addXP(delta){const id=getId();if(!id)return;const local=getScore()+delta;localStorage.setItem(SCORE,String(local));try{const data=await api('/api/xp',{method:'POST',body:JSON.stringify({id,delta})});if(typeof data.xp==='number')localStorage.setItem(SCORE,String(data.xp))}catch(e){console.warn('XP sync failed',e)}}
+  document.querySelectorAll('.quick-card[data-action]').forEach(btn=>{if(btn.dataset.action==='leaderboard')return;btn.addEventListener('click',()=>{addXP(5);const action=btn.dataset.action;if(action==='rate'&&!window.attachedFile){const input=document.getElementById('input');if(input){input.placeholder='Lampirkan foto/video dulu, lalu tekan 🎯 Rating.';input.focus()}}setQuick(false)})});
+})();
+</script>
+</body>
+</html>

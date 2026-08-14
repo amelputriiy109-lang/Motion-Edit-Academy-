@@ -1,0 +1,12 @@
+name = "motion-edit-academy"
+compatibility_date = "2026-08-14"
+
+[[kv_namespaces]]
+binding = "LEADERBOARD"
+id = "af60ef56539e46ef82d14b5f2fd025ea"
+
+[assets]
+directory = "."
+
+[observability]
+enabled = true
