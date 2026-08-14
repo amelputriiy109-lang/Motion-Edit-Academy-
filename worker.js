@@ -34,7 +34,7 @@ function isAllowedPath(pathname) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: CORS });
     }
@@ -43,10 +43,11 @@ export default {
       return json({ error: { message: "Method not allowed" } }, 405);
     }
 
-    const apiKey = request.headers.get("x-goog-api-key");
-    if (!apiKey) {
-      return json({ error: { message: "Missing x-goog-api-key" } }, 401);
-    }
+    const apiKey = env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  return json({ error: { message: "GEMINI_API_KEY belum dipasang di Cloudflare" } }, 500);
+}
 
     const incoming = new URL(request.url);
     if (!isAllowedPath(incoming.pathname)) {
