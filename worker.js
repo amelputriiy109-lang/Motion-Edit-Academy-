@@ -44,7 +44,6 @@ export default {
     }
 
     const apiKey = env.GEMINI_API_KEY;
-
 if (!apiKey) {
   return json({ error: { message: "GEMINI_API_KEY belum dipasang di Cloudflare" } }, 500);
 }
